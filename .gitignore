@@ -14,6 +14,8 @@ $py.class
 .venv
 
 
+# temporarly .github (till iam sure workflows work correctly)
+.github
 # C extensions
 *.so
 
