@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class Book_data:
     "A class for holding all Book info"
@@ -13,3 +12,4 @@ class Book_data:
     book_print: str
     volumes: int
     is_equal_to_print: bool
+    book_id: str = ""
