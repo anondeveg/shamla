@@ -408,3 +408,56 @@ sh.register_department("loaded_dept", patterns=[r'loaded'])
     # Clean up
     global_registry.clear()
 
+def test_parse_book_page_diacritics():
+    from shamla.client.parser import parse_book_page
+    
+    html = """
+    <html>
+        <head><title>الجزء الأول - كتاب</title></head>
+        <body>
+            <p><span class="anchor" id="p1"></span><span class="c4">تَفْسِيرٌ</span></p>
+            <p><span class="anchor" id="p2"></span>كِتَابٌ جَمِيلٌ ... فِيهِ عِلْمٌ</p>
+            <p class="hamesh">١ هَذَا هَامِشٌ</p>
+        </body>
+    </html>
+    """
+    
+    # 1. ignore_diacritics = False (default behavior)
+    page_default = parse_book_page(html, "123", 1, departments=[])
+    assert "تَفْسِيرٌ" in page_default.headings
+    assert "كِتَابٌ جَمِيلٌ ... فِيهِ عِلْمٌ" in page_default.paragraphs
+    assert page_default.footnotes[0].content == "هَذَا هَامِشٌ"
+
+    # 2. ignore_diacritics = True, keep_diacritics_in_paragraphs = False
+    poetry_pattern = r'([^\n\.\…\s][^\n\.\…]*[^\n\.\…\s])\s*(?:\.\.\.+|\…)\s*([^\n\.\…\s][^\n\.\…]*[^\n\.\…\s])'
+    page_clean = parse_book_page(
+        html, 
+        "123", 
+        1, 
+        citation_patterns=[poetry_pattern], 
+        departments=[], 
+        ignore_diacritics=True,
+        keep_diacritics_in_paragraphs=False
+    )
+    assert "تفسير" in page_clean.headings
+    assert "كتاب جميل ... فيه علم" in page_clean.paragraphs
+    assert "كتاب جميل ... فيه علم" in page_clean.citations
+    assert page_clean.footnotes[0].content == "هذا هامش"
+
+    # 3. ignore_diacritics = True, keep_diacritics_in_paragraphs = True
+    page_keep = parse_book_page(
+        html, 
+        "123", 
+        1, 
+        citation_patterns=[poetry_pattern], 
+        departments=[], 
+        ignore_diacritics=True,
+        keep_diacritics_in_paragraphs=True
+    )
+    assert "تفسير" in page_keep.headings
+    # Paragraph and footnotes keep diacritics
+    assert "كِتَابٌ جَمِيلٌ ... فِيهِ عِلْمٌ" in page_keep.paragraphs
+    assert page_keep.footnotes[0].content == "هَذَا هَامِشٌ"
+    # Citations (matched/checked quotes) do NOT keep diacritics
+    assert "كتاب جميل ... فيه علم" in page_keep.citations
+

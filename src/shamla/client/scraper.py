@@ -131,7 +131,9 @@ class Scraper:
         page_number: int,
         citation_patterns: list[Union[str, re.Pattern]] | None = None,
         custom_extractor: Callable[[str], list[str]] | None = None,
-        departments: list[str] | None = None
+        departments: list[str] | None = None,
+        ignore_diacritics: bool = False,
+        keep_diacritics_in_paragraphs: bool = False
     ) -> Page_data:
         """Fetch and parse a specific book page contents."""
         _, book_id = self._normalize_url(url_or_id)
@@ -149,7 +151,9 @@ class Scraper:
             page_number,
             citation_patterns=citation_patterns,
             custom_extractor=custom_extractor,
-            departments=departments
+            departments=departments,
+            ignore_diacritics=ignore_diacritics,
+            keep_diacritics_in_paragraphs=keep_diacritics_in_paragraphs
         )
 
     @classmethod
